@@ -1,6 +1,8 @@
 var twitter = require('./config').twitter;
 var nlu = require('./config').natural_language_understanding
 
+// nlu parameters, see docs for options
+// used in nluAnalyze, text is populated there
 var parameters = {
     'text': '',
     'return_analyzed_text': true,
@@ -17,17 +19,20 @@ var parameters = {
     }
 };
 
+// begin getting twitter posts
 twitter.get('/statuses/user_timeline', {
     screen_name: 'realDonaldTrump',
     count: 10
 }).then(function (data) {
+    // extract out only the text
     return tweets = data.map(function (tweet) {
         return tweet.text;
     });
 }).then(function() {
+    // run async map over tweets
     return tweets.asyncMap(function(tweet, index) {
+        // get nlu results of a tweet then map analysis to tweet
         return nluAnalyze(tweet).then(function(analysis) {
-            // console.log('Tweet: ' + index, JSON.stringify(analysis, null, 2));
             tweets[index] = {
                 "tweet": tweet,
                 "sentiment": analysis.sentiment.document,
@@ -46,11 +51,17 @@ twitter.get('/statuses/user_timeline', {
         })
     });
 }).then(function() {
+    // print out nlu tweet analysis
     console.log('tweets: ', JSON.stringify(tweets, null, 2));
 }).catch(function (err) {
     console.log('twitter err: ', JSON.stringify(err, null, 2));
 });
 
+
+
+//-----------------------
+// Promise Helpers
+//-----------------------
 function nluAnalyze(tweet) {
     parameters.text = tweet;
     return new Promise(function(resolve, reject) {
