@@ -19,7 +19,7 @@ var parameters = {
 
 twitter.get('/statuses/user_timeline', {
     screen_name: 'realDonaldTrump',
-    count: 3
+    count: 10
 }).then(function (data) {
     return tweets = data.map(function (tweet) {
         return tweet.text;
@@ -28,24 +28,27 @@ twitter.get('/statuses/user_timeline', {
     return tweets.asyncMap(function(tweet, index) {
         return nluAnalyze(tweet).then(function(analysis) {
             // console.log('Tweet: ' + index, JSON.stringify(analysis, null, 2));
-            return tweets[index] = {
+            tweets[index] = {
                 "tweet": tweet,
                 "sentiment": analysis.sentiment.document,
                 "emotion": analysis.emotion.document.emotion,
-                "subject": {
+            }
+            if(analysis.entities[0]) {
+                tweets[index].subject = {
                     "target": analysis.entities[0].text,
                     "sentiment": analysis.entities[0].sentiment,
                     "emotion": analysis.entities[0].emotion
                 }
-            };
+            }
+            return tweets[index];
         }).catch(function(err) {
-            throw JSON.stringify(err, null, 2);
+            console.log('nlu err: ', JSON.stringify(err, null, 2));
         })
     });
 }).then(function() {
-    console.log(JSON.stringify(tweets, null, 2));
+    console.log('tweets: ', JSON.stringify(tweets, null, 2));
 }).catch(function (err) {
-    throw JSON.stringify(err, null, 2);
+    console.log('twitter err: ', JSON.stringify(err, null, 2));
 });
 
 function nluAnalyze(tweet) {
@@ -68,5 +71,7 @@ Array.prototype.asyncMap = function(callback) {
             out[i] = await callback.call(ar, ar[i], i, ar);
         }
         return out;
+    }).catch(function(err) {
+        console.log('asyncMap err: ', err);
     })
 }
