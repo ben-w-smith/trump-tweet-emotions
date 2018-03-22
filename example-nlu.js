@@ -16,9 +16,19 @@ var parameters = {
     }
 }
 
-nlu.analyze(parameters, function (err, response) {
-    if (err)
-        console.log('error:', err);
-    else
-        console.log(JSON.stringify(response, null, 2));
+function nluAnalyze() {
+    return new Promise(function (resolve, reject) {
+        nlu.analyze(parameters, function (err, response) {
+            if (err)
+                reject(err)
+            else
+                resolve(response)
+        });
+    })
+}
+
+nluAnalyze().then(function(result) {
+    console.log(result);
+}).catch(function(err) {
+    console.log(err);
 });

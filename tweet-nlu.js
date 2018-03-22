@@ -9,9 +9,6 @@ var parameters = {
         },
         'sentiment': {
         },
-        'concepts': {
-            'limit': 3
-        },
         'entities': {
             'sentiment': true,
             'emotion': true,
@@ -22,19 +19,34 @@ var parameters = {
 
 twitter.get('/statuses/user_timeline', {
     screen_name: 'realDonaldTrump',
-    count: 10
+    count: 1
 }).then(function (data) {
     var tweets = data.map(function (tweet) {
         return tweet.text;
     });
-    console.log(tweets);
+
+    tweets.forEach(function(tweet, index) {
+        nluAnalyze(tweet).then(function(analysis) {
+            console.log('Tweet: ' + index, JSON.stringify(analysis, null, 2));
+        }).catch(function(err) {
+            throw JSON.stringify(err, null, 2);
+        })
+    });
 }).catch(function (err) {
     throw JSON.stringify(err, null, 2);
 });
 
 function nluAnalyze(tweet) {
-
-    nlu.analyze(parameters, nluResult);
+    parameters.text = tweet;
+    return new Promise(function(resolve, reject) {
+        nlu.analyze(parameters, function(err, resp) {
+            if(err) {
+                reject(err);
+            } else {
+                resolve(resp);
+            }
+        })
+    })
 }
 
 /*
