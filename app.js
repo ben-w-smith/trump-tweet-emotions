@@ -3,7 +3,7 @@ var app = express();
 var tweets = require('./tweet-nlu');
 
 app.get('/', function(req, res, next) {
-	tweets().then(function(tweets) {
+	tweets(5).then(function(tweets) {
 		res.send(JSON.stringify(tweets));
 	}).catch(next)
 });

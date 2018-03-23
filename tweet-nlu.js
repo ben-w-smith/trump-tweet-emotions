@@ -22,15 +22,22 @@ var parameters = {
 };
 
 // begin getting twitter posts
-function analyzedTweets () {
+function analyzedTweets(count, max_id) {
+	var count = (count) ? count : 1;
+	var max_id = (max_id) ? '?max_id=' + max_id : '';
+	var request = '/statuses/user_timeline' + max_id;
+
 	return new Promise(function(resolve, reject) {
-		twitter.get('/statuses/user_timeline', {
+		twitter.get(request, {
 			screen_name: screen_name,
-			count: 1
+			count: count
 		}).then(function (data) {
 		    // extract out only the text
 		    tweets = data.map(function (tweet) {
-		    	return tweet.text;
+		    	return {
+		    		'text': tweet.text,
+		    		'id': tweet.id_str
+		    	};
 		    });
 		}).then(function() {
 		    // run async map over tweets
@@ -51,7 +58,7 @@ function analyzedTweets () {
 // Promise Helpers
 //-----------------------
 function nluAnalyze(tweet) {
-	parameters.text = tweet;
+	parameters.text = tweet.text;
 	return new Promise(function(resolve, reject) {
 		nlu.analyze(parameters, function(err, resp) {
 			if(err) {
@@ -68,7 +75,8 @@ function analyzeTweets(tweets) {
         // get nlu results of a tweet then map analysis to tweet
         return nluAnalyze(tweet).then(function(analysis) {
         	tweets[index] = {
-        		"tweet": tweet,
+        		"tweet_text": tweet.text,
+        		"tweet_id": tweet.id,
         		"sentiment": analysis.sentiment.document,
         		"emotion": analysis.emotion.document.emotion,
         	}
