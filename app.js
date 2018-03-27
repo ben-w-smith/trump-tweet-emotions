@@ -2,9 +2,11 @@ var express = require('express');
 var app = express();
 var tweets = require('./tweet-nlu');
 
+app.set('json spaces', 4);
+
 app.get('/', function(req, res, next) {
 	tweets(5).then(function(tweets) {
-		res.send(JSON.stringify(tweets));
+		res.send(tweets);
 	}).catch(next)
 });
 
